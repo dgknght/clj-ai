@@ -62,11 +62,11 @@
     (throw (ex-info "The input is not valid" {:input input})))
   (when-not (s/valid? ::input target)
     (throw (ex-info "The target is not valid" {:target target})))
-  (let [result (query network input)
-        error (->> (interleave target result)
-                   (partition 2)
-                   (map (partial apply -)))]
-    (->> network
-         (reduce (fn [reverse-input layer]
-                   )
-                 error))))
+  (let [stack (reduce (fn [stack layer]
+                        (conj stack {:layer layer
+                                     :output (->> (:output (first stack))
+                                                  (mmul (array layer))
+                                                  (map sigmoid))}))
+                      (list {:output input})
+                      network)]
+    stack))
